@@ -1,0 +1,6 @@
+pyscfcube*
+**/CUBE_FILES/
+tmp*
+**/data*
+**/__pycache__/
+**/.ipynb_checkpoints/
