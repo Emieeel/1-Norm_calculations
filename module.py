@@ -89,7 +89,7 @@ def file_len(fname):
     return i + 1
 
 
-def compute_integrals(pyscf_molecule, pyscf_scf):
+def compute_integrals(pyscf_molecule, pyscf_scf, C, threshold):
     """
     Compute the 1-electron and 2-electron integrals.
 
@@ -102,20 +102,24 @@ def compute_integrals(pyscf_molecule, pyscf_scf):
         two_electron_integrals: An N by N by N by N array storing h_{pqrs}.
     """
     # Get one electrons integrals.
-    n_orbitals = pyscf_scf.mo_coeff.shape[1]
-    one_electron_compressed = reduce(np.dot, (pyscf_scf.mo_coeff.T,
-                                                 pyscf_scf.get_hcore(),
-                                                 pyscf_scf.mo_coeff))
+    n_orbitals = C.shape[1]
+    one_electron_compressed = reduce(np.dot, (C.T,
+                                              pyscf_scf.get_hcore(),
+                                              C))
+    # print(one_electron_compressed.shape, 'norb', n_orbitals)
     one_electron_integrals = one_electron_compressed.reshape(
         n_orbitals, n_orbitals).astype(float)
 
     # Get two electron integrals in compressed format.
     two_electron_compressed = ao2mo.kernel(pyscf_molecule,
-                                           pyscf_scf.mo_coeff)
+                                           C)
 
     two_electron_integrals = ao2mo.restore(
         1, # no permutation symmetry
         two_electron_compressed, n_orbitals)
+    low_indices = abs(two_electron_integrals) < threshold
+    two_electron_integrals[low_indices] = 0.
+    # print('2ec shape', two_electron_compressed.shape, '2ei shape', two_electron_integrals.shape)
     # See PQRS convention in OpenFermion.hamiltonians._molecular_data
     # h[p,q,r,s] = (ps|qr)
     two_electron_integrals = np.asarray(
@@ -946,3 +950,27 @@ def spin_coeff(one_body_integrals, two_body_integrals, threshold=1e-10):
     two_body_coefficients[
         np.absolute(two_body_coefficients) < threshold] = 0.
     return one_body_coefficients, two_body_coefficients
+
+def K_matr(Rot_param_values, nmo, active_indices, occupied_indices=None, optimize_occ=None):
+    K = np.zeros((nmo,nmo))
+    n = 0
+    for q in range(nmo-1):
+        for p in range(q+1,nmo):
+            if ( p in active_indices and q in active_indices ) or\
+            ( (p in occupied_indices and q in occupied_indices) and optimize_occ ):
+                K[ p, q ] = - Rot_param_values[n]
+                K[ q, p ] = - K[ p, q ]
+                n += 1
+    return np.array(K)
+
+def constraints(bounds):
+    cons = []
+    for factor in range(len(bounds)):
+        lower, upper = bounds[factor]
+        l = {'type': 'ineq',
+             'fun': lambda x, lb=lower, i=factor: x[i] - lb}
+        u = {'type': 'ineq',
+             'fun': lambda x, ub=upper, i=factor: ub - x[i]}
+        cons.append(l)
+        cons.append(u)
+    return cons
