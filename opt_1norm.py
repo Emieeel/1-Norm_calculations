@@ -11,7 +11,7 @@ import numpy as np
 from scipy.optimize import minimize
 import scipy 
 from random import random
-from openfermion.functionals import JW1norm_spat
+from openfermion.functionals import JW1norm_spatfast
 from pyscf import gto, scf, lo, tools
 import module as md
 import time
@@ -27,7 +27,7 @@ multiplicity = 1
 
 # Set calculation parameters.
 optimize_occ = 0 # Do you want to also optimize the external occupied orbitals?
-consider_cas = 1 # Do we consider an active space or the full space?
+consider_cas = 0 # Do we consider an active space or the full space?
 # Set size of active space
 n_orbitals = 4
 n_electrons = 4
@@ -62,7 +62,7 @@ else:
              'xyz_files/femoco.txt', 'xyz_files/M06-L.txt','xyz_files/butane.txt',\
              'xyz_files/pentane.txt','xyz_files/hexane.txt','xyz_files/heptane.txt',\
              'xyz_files/butene.txt','xyz_files/pentene.txt','xyz_files/hexene.txt',\
-             'xyz_files/heptene.txt'][8]
+             'xyz_files/heptene.txt'][9]
     geometry = md.xyz_to_geom(fname)
      
 # Determine number of AOs and electrons
@@ -130,9 +130,9 @@ if consider_cas:
 else:
     CASconstant = 0
 t4 = time.time()
-qub1norm = JW1norm_spat(np.copy(constant+CASconstant),
-                        np.copy(one_body_integrals),
-                        np.copy(two_body_integrals))
+qub1norm = JW1norm_spatfast(constant+CASconstant,
+                            one_body_integrals,
+                            two_body_integrals)
 print('\ncalculating norm of qubit hamiltonian took', time.time()-t4)
 
 print('\n')
@@ -164,9 +164,9 @@ if consider_cas:
 else:
     CASconstant_PM = 0
 t4 = time.time()
-qub1norm_loc = JW1norm_spat(np.copy(constant+CASconstant_PM),
-                        np.copy(one_body_integrals),
-                        np.copy(two_body_integrals))
+qub1norm_loc = JW1norm_spatfast(constant+CASconstant,
+                            one_body_integrals,
+                            two_body_integrals)
 print('calculating norm of qubit hamiltonian took', time.time()-t4)
 
 if consider_cas:
@@ -240,9 +240,9 @@ def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
         CASconstant = 0
     # Compute 1-norm
     t4 = time.time()
-    OneNorm = JW1norm_spat(np.copy(constant+CASconstant),
-                           np.copy(one_body_integrals),
-                           np.copy(two_body_integrals))
+    OneNorm = JW1norm_spatfast(constant+CASconstant,
+                               one_body_integrals,
+                               two_body_integrals)
     if verbose: print('calculating norm of qubit hamiltonian took', time.time()-t4)
     print('1-norm is:',OneNorm)
     if verbose: print("total time for 1 cost function evaluation is", time.time()-t6)
@@ -251,7 +251,7 @@ def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
 print("starting 1-norm nonloc is:",qub1norm)
 print("1norm locPM is:",qub1norm_loc)
 
-verbose = 0
+verbose = 1
 t7 = time.time()
 f_min_OO = minimize( Cost_function_OO_OneNorm,
                       x0      = Rot_param_values,
@@ -286,9 +286,9 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorbOO = JW1norm_spat(np.copy(constant+CASconstant),
-                            np.copy(one_body_integrals),
-                            np.copy(two_body_integrals))
+OneNormorbOO = JW1norm_spatfast(constant+CASconstant,
+                            one_body_integrals,
+                            two_body_integrals)
 
 one_body_integrals, two_body_integrals = md.compute_integrals(
         mol, myhf, C_nonloc[:,:ntot], threshold)
@@ -300,9 +300,9 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorbnonloc = JW1norm_spat(np.copy(constant+CASconstant),
-                                np.copy(one_body_integrals),
-                                np.copy(two_body_integrals))
+OneNormorbnonloc = JW1norm_spatfast(constant+CASconstant,
+                            one_body_integrals,
+                            two_body_integrals)
 
 one_body_integrals, two_body_integrals = md.compute_integrals(
         mol, myhf, C_locPM[:,:ntot], threshold)
@@ -314,9 +314,9 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorblocPM = JW1norm_spat(np.copy(constant+CASconstant),
-                       np.copy(one_body_integrals),
-                       np.copy(two_body_integrals))
+OneNormorblocPM = JW1norm_spatfast(constant+CASconstant,
+                            one_body_integrals,
+                            two_body_integrals)
 if randomize:
     print("Starting from random orbital rotation...")
 if consider_cas:
