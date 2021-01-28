@@ -18,7 +18,8 @@ from pyscf import gto, scf, lo, tools
 import module as md
 import time 
 import scipy 
-import cma 
+import cma
+import h5py
 
 #%%======================================================|
 # Set molecule and optimization parameters
@@ -99,6 +100,7 @@ else:
 # Determine number of AOs and electrons
 nmo = md.count_ao(geometry,basis,spin=multiplicity-1)
 nelec = md.count_elec(geometry,basis,spin=multiplicity-1)
+print("considering molecule", fname)
 print('Number of AOs:',nmo,'\nNumber of electrons:', nelec)
 threshold = 1e-10
 
@@ -256,6 +258,7 @@ else:
 # Run minimization
 #========================================================|
 # Define the cost function
+
 def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
     """
     Cost function to minimize the One-Norm using MO rotations.
@@ -302,6 +305,9 @@ def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
                                 two_body_integrals_MO) 
     
     if verbose: print('1-Norm =', OneNorm)
+    
+    
+    
     # if verbose: print('Calculating 1norm took:', time.time()-t1)
     return OneNorm
 
@@ -312,7 +318,8 @@ def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
 print("starting 1-norm nonloc is:",qub1norm)
 print("1norm locPM is:",qub1norm_loc)
 
-verbose = 0
+verbose = 1
+# temp = 0
 t7 = time.time()
 
 # f_min_OO = minimize_parallel(Cost_function_OO_OneNorm,
@@ -442,6 +449,11 @@ else:
 # The file looks like: cwd/CUBE_FILES/pyscfcube{description}{localizemethod}
 # {localized}{randomized}{consider_cas}{MO index}, to differentiate different MOs.
 
+
+datadir = os.getcwd() + '/CUBE_FILES/'
+if not os.path.exists(datadir):
+    os.makedirs(datadir)
+
 # Code for orbital optimized MOs:
 Cost_function_OO_OneNorm(f_min_OO.x)
 K = md.K_matr(f_min_OO.x, nmo, active_indices,
@@ -477,3 +489,21 @@ for i in range(ncore,ntot):
 print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
 print('extracting cube files took', time.time()-t13)
 
+#%%======================================================|
+# Optional: Print MO_coeff to hdf5 file
+#========================================================|
+
+if consider_cas:
+    datadir = os.getcwd() + '/Saved_data/Onenormopt/MO_coeffCAS' + description
+else:
+    datadir = os.getcwd() + '/Saved_data/Onenormopt/MO_coeffFSPACE' + description
+if not os.path.exists(datadir):
+    os.makedirs(datadir)
+
+t5 = time.time()
+with h5py.File(datadir + '/MO_coeff' + '.hdf5', 'w') as f:
+    f.create_dataset('C_nonloc', data=C_nonloc)
+    f.create_dataset('C_loc', data=C_locPM)
+    f.create_dataset('C_OO', data=C_OO)
+print("saving integrals to hdf5 file took:", time.time()-t5)
+print("Saved integrals in hdf5 file")
