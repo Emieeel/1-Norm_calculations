@@ -32,10 +32,10 @@ multiplicity = 1
 
 # Set calculation parameters.
 optimize_occ = 0 # Do you want to also optimize the external occupied orbitals?
-consider_cas = 0 # Do we consider an active space or the full space?
+consider_cas = 1 # Do we consider an active space or the full space?
 # Set size of active space
-n_orbitals = 6
-n_electrons = 4
+n_orbitals = 30
+n_electrons = 30
 
 
 OPT_METHOD       = "SLSQP"
@@ -94,7 +94,7 @@ else:
              'xyz_files/butene.txt',
              'xyz_files/pentene.txt',
              'xyz_files/hexene.txt',
-             'xyz_files/heptene.txt'][9]
+             'xyz_files/heptene.txt'][10]
     geometry = md.xyz_to_geom(fname)
      
 # Determine number of AOs and electrons
@@ -463,31 +463,31 @@ if localize:
     C_OO = C_locPM @ U_OO
 else:
     C_OO = C_nonloc @ U_OO
-t13 = time.time()
-for i in range(ncore,ntot):
-    tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcube'\
-                          + description + 'onenorm_orb' + localizemethod + str(localize)\
-                          + str(randomize) + str(consider_cas) + str(i) , C_OO[:,i])
-print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
-print('extracting cube files took', time.time()-t13) 
+# t13 = time.time()
+# for i in range(ncore,ntot):
+#     tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcube'\
+#                           + description + 'onenorm_orb' + localizemethod + str(localize)\
+#                           + str(randomize) + str(consider_cas) + str(i) , C_OO[:,i])
+# print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
+# print('extracting cube files took', time.time()-t13) 
 
 
-# If you want to extract CMOs or LMOs:
-t13 = time.time()
-for i in range(ncore,ntot):
-    tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcubeCMO'\
-                          + description + localizemethod + str(0)\
-                          + str(randomize) + str(consider_cas) + str(i) , C_nonloc[:,i])
-print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
-print('extracting cube files took', time.time()-t13)
+# # If you want to extract CMOs or LMOs:
+# t13 = time.time()
+# for i in range(ncore,ntot):
+#     tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcubeCMO'\
+#                           + description + localizemethod + str(0)\
+#                           + str(randomize) + str(consider_cas) + str(i) , C_nonloc[:,i])
+# print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
+# print('extracting cube files took', time.time()-t13)
 
-t13 = time.time()
-for i in range(ncore,ntot):
-    tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcubePM'\
-                          + description + localizemethod + str(1)\
-                          + str(randomize) + str(consider_cas) + str(i) , C_locPM[:,i])
-print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
-print('extracting cube files took', time.time()-t13)
+# t13 = time.time()
+# for i in range(ncore,ntot):
+#     tools.cubegen.orbital(mol, os.getcwd() + '/CUBE_FILES/pyscfcubePM'\
+#                           + description + localizemethod + str(1)\
+#                           + str(randomize) + str(consider_cas) + str(i) , C_locPM[:,i])
+# print('Cube files of molecule', description,'created in', os.getcwd() + '/CUBE_FILES/')
+# print('extracting cube files took', time.time()-t13)
 
 #%%======================================================|
 # Optional: Print MO_coeff to hdf5 file
