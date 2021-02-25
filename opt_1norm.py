@@ -62,7 +62,7 @@ else:
              'xyz_files/femoco.txt', 'xyz_files/M06-L.txt','xyz_files/butane.txt',\
              'xyz_files/pentane.txt','xyz_files/hexane.txt','xyz_files/heptane.txt',\
              'xyz_files/butene.txt','xyz_files/pentene.txt','xyz_files/hexene.txt',\
-             'xyz_files/heptene.txt'][9]
+             'xyz_files/heptene.txt'][17]
     geometry = md.xyz_to_geom(fname)
      
 # Determine number of AOs and electrons
