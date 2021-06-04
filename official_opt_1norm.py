@@ -9,15 +9,16 @@ Created on Fri Jan 22 11:49:27 2021
 
 import os
 import numpy as np
+from numba import prange
 from scipy.optimize import minimize
 from optimparallel import minimize_parallel
-import scipy 
+import scipy
 from random import random
-from openfermion.functionals import JW1norm_spatfast, JW1norm_spat
+from openfermion.functionals import JW1norm_new, JW1norm_woconst
 from pyscf import gto, scf, lo, tools
 import module as md
-import time 
-import scipy 
+import time
+import scipy
 import cma
 import h5py
 import sys
@@ -26,7 +27,7 @@ import sys
 # Set molecule and optimization parameters
 #========================================================|
 
-n_mol =9#int(sys.argv[1])
+n_mol = 8#int(sys.argv[1])
 n_basis = 1#int(sys.argv[2])
 
 
@@ -39,8 +40,8 @@ optimize_occ = 0 # Do you want to also optimize the external occupied orbitals?
 consider_cas = 1#int(sys.argv[5]) # Do we consider an active space or the full space?
 # Set size of active space
 if consider_cas:
-    n_orbitals = 50#int(sys.argv[6])
-    n_electrons = 32#int(sys.argv[7])
+    n_orbitals = 50 #int(sys.argv[6])
+    n_electrons = 32 #int(sys.argv[7])
 
 OPT_PARALLEL     = 1 # int(sys.argv[3])
 OPT_METHOD       = "SLSQP"
@@ -162,7 +163,7 @@ if consider_cas:
 else:
     CASconstant = 0
 t4 = time.time()
-qub1norm = JW1norm_spatfast(constant+CASconstant,
+qub1norm = JW1norm_wo_const(constant+CASconstant,
                             one_body_integrals,
                             two_body_integrals)
 print('\ncalculating norm of qubit hamiltonian took', time.time()-t4)
@@ -196,7 +197,7 @@ if consider_cas:
 else:
     CASconstant_PM = 0
 t4 = time.time()
-qub1norm_loc = JW1norm_spatfast(constant+CASconstant_PM,
+qub1norm_loc = JW1norm_wo_const(constant+CASconstant_PM,
                                 one_body_integrals,
                                 two_body_integrals)
 print('calculating norm of qubit hamiltonian took', time.time()-t4)
@@ -303,7 +304,7 @@ def Cost_function_OO_OneNorm(Rot_param_values, verbose=False):
  
     
         
-    OneNorm = JW1norm_spatfast(constant+CASconstant,
+    OneNorm = JW1norm_wo_const(constant+CASconstant,
                           one_body_integrals_MO,
                           two_body_integrals_MO) 
     
@@ -381,7 +382,7 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorbOO = JW1norm_spatfast(constant+CASconstant,
+OneNormorbOO = JW1norm_wo_const(constant+CASconstant,
                                 one_body_integrals,
                                 two_body_integrals)
 
@@ -395,7 +396,7 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorbnonloc = JW1norm_spatfast(constant+CASconstant,
+OneNormorbnonloc = JW1norm_wo_const(constant+CASconstant,
                                     one_body_integrals,
                                     two_body_integrals)
 
@@ -409,7 +410,7 @@ if consider_cas:
                                       active_indices)
 else:
         CASconstant = 0
-OneNormorblocPM = JW1norm_spatfast(constant+CASconstant,
+OneNormorblocPM = JW1norm_wo_const(constant+CASconstant,
                                    one_body_integrals,
                                    two_body_integrals)
 if randomize:
